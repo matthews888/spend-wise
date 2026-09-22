@@ -40,6 +40,22 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  siAfterpay,
+  siAnthropic,
+  siApple,
+  siDoordash,
+  siGoogle,
+  siKfc,
+  siMcdonalds,
+  siNetflix,
+  siNotion,
+  siPlaystation,
+  siSpotify,
+  siUbereats,
+  siYoutube,
+  type SimpleIcon,
+} from "simple-icons/icons";
+import {
   categoryList,
   money,
   monthKey,
@@ -101,6 +117,33 @@ function CategoryIcon({ category, size = "normal" }: { category: Category; size?
   return (
     <span className={`category-icon ${meta.color} ${size}`}>
       <Icon aria-hidden="true" />
+    </span>
+  );
+}
+
+const merchantIcons: Array<{ pattern: RegExp; icon: SimpleIcon; color?: string }> = [
+  { pattern: /uber eats/i, icon: siUbereats },
+  { pattern: /doordash/i, icon: siDoordash },
+  { pattern: /netflix/i, icon: siNetflix },
+  { pattern: /spotify/i, icon: siSpotify },
+  { pattern: /youtube/i, icon: siYoutube },
+  { pattern: /apple/i, icon: siApple },
+  { pattern: /google workspace/i, icon: siGoogle },
+  { pattern: /playstation/i, icon: siPlaystation },
+  { pattern: /claude|anthropic/i, icon: siAnthropic },
+  { pattern: /notion/i, icon: siNotion },
+  { pattern: /afterpay/i, icon: siAfterpay, color: "#00a77b" },
+  { pattern: /\bkfc\b/i, icon: siKfc },
+  { pattern: /mcdonald/i, icon: siMcdonalds, color: "#d90007" },
+];
+
+function MerchantIcon({ merchant, category, size = "small" }: { merchant: string; category: Category; size?: "small" | "normal" | "large" }) {
+  const matched = merchantIcons.find(({ pattern }) => pattern.test(merchant));
+  if (!matched) return <CategoryIcon category={category} size={size} />;
+  const color = matched.color ?? `#${matched.icon.hex}`;
+  return (
+    <span className={`merchant-icon ${size}`} style={{ color, backgroundColor: `${color}12` }} title={matched.icon.title}>
+      <svg viewBox="0 0 24 24" role="img" aria-label={matched.icon.title}><path fill="currentColor" d={matched.icon.path} /></svg>
     </span>
   );
 }
@@ -249,7 +292,7 @@ function OverviewScreen({
 function TransactionRow({ transaction, onClick }: { transaction: Transaction; onClick: () => void }) {
   return (
     <button className="transaction-row" onClick={onClick}>
-      <CategoryIcon category={transaction.category} size="small" />
+      <MerchantIcon merchant={transaction.merchant} category={transaction.category} />
       <span><strong>{transaction.merchant}</strong><small>{dateLabel(transaction.date)} · {transaction.category}</small></span>
       <b className={transaction.kind === "refund" ? "refund" : ""}>{transaction.kind === "refund" ? "−" : ""}{money(transaction.amount, 2)}</b>
       <ChevronRight />
@@ -388,7 +431,7 @@ function WasteScreen({
         <div className="ranked-list">
           {merchants.length ? merchants.map(([merchant, item], index) => (
             <button className="ranked-row surface" key={merchant} onClick={() => onTransaction(item.item)}>
-              <b>{index + 1}</b><CategoryIcon category={item.category} />
+              <b>{index + 1}</b><MerchantIcon merchant={merchant} category={item.category} size="normal" />
               <span><strong>{merchant}</strong><small>{item.category}</small></span>
               <span className="rank-amount"><strong>{money(item.amount)}</strong><small>{item.count} transaction{item.count === 1 ? "" : "s"}</small></span>
               <ChevronRight />
@@ -505,7 +548,7 @@ function TransactionDrawer({
       <section className="transaction-drawer" role="dialog" aria-modal="true" aria-labelledby="transaction-title">
         <div className="drawer-handle" />
         <button className="modal-close" onClick={onClose}><X /></button>
-        <CategoryIcon category={transaction.category} size="large" />
+        <MerchantIcon merchant={transaction.merchant} category={transaction.category} size="large" />
         <h2 id="transaction-title">{transaction.merchant}</h2>
         <strong className="drawer-amount">{money(transaction.amount, 2)}</strong>
         <p>{dateLabel(transaction.date)} · {transaction.source}</p>
