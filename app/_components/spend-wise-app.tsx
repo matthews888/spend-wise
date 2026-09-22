@@ -40,13 +40,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  analyseBankText,
-  analyseCsv,
   categoryList,
   money,
   monthKey,
   monthLabel,
-  pdfText,
+  parseStatementFile,
   sampleTransactions,
   signedAmount,
   type Category,
@@ -60,6 +58,7 @@ type SpendingView = "categories" | "subscriptions";
 
 const categoryMeta: Record<Category, { color: string; icon: LucideIcon }> = {
   Subscriptions: { color: "purple", icon: WalletCards },
+  "Apple purchases": { color: "slate", icon: ShoppingBag },
   "Food delivery": { color: "orange", icon: Utensils },
   Cafés: { color: "violet", icon: Coffee },
   "Dining out": { color: "amber", icon: Utensils },
@@ -68,6 +67,8 @@ const categoryMeta: Record<Category, { color: string; icon: LucideIcon }> = {
   Transport: { color: "blue", icon: Car },
   Bills: { color: "cyan", icon: ReceiptText },
   Convenience: { color: "yellow", icon: Zap },
+  Transfers: { color: "blue", icon: ArrowLeft },
+  Income: { color: "green", icon: ArrowDown },
   Other: { color: "slate", icon: MoreHorizontal },
 };
 
@@ -311,7 +312,7 @@ function SpendingScreen({
             <p>Small changes.<br />A brighter tomorrow.</p>
           </section>
           <section className="surface breakdown-card">
-            <div className="section-heading"><div><h2>Spending by category</h2><p>Your {monthLabel(month)} breakdown</p></div></div>
+            <div className="section-heading"><div><h2>Spending by category</h2><p>Your {monthLabel(month)} breakdown · net of detected refunds</p></div></div>
             {categoryGroups.map(([category, amount]) => (
               <div className="breakdown-row" key={category}>
                 <CategoryIcon category={category} size="small" />
@@ -436,7 +437,7 @@ function SettingsScreen({
         <div className="section-heading"><div><h2>Statement history</h2><p>{statements.length ? `${statements.length} imported files` : "No statements imported yet"}</p></div></div>
         <div className="statement-list surface">
           {statements.length ? statements.map((statement) => (
-            <div key={statement.id}><span className="setting-icon slate"><FileText /></span><span><strong>{statement.name}</strong><small>{statement.transactionCount} transactions · {new Date(statement.uploadedAt).toLocaleDateString("en-AU")}</small></span><Check /></div>
+            <div key={statement.id}><span className="setting-icon slate"><FileText /></span><span><strong>{statement.name}</strong><small>{statement.transactionCount} transactions · {new Date(statement.uploadedAt).toLocaleDateString("en-AU")}{statement.diagnostics ? ` · ${statement.diagnostics.reconciledTransactions} reconciled · ${statement.diagnostics.unreconciledTransactions + statement.diagnostics.missingBalanceTransactions} flagged` : ""}</small></span><Check /></div>
           )) : <p className="inline-empty">Upload a statement to see its history here.</p>}
         </div>
       </section>
@@ -542,7 +543,7 @@ export default function SpendWiseApp() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("spendwise-data-v1");
+      const saved = localStorage.getItem("spendwise-data-v2");
       if (saved) {
         const parsed = JSON.parse(saved) as { transactions: Transaction[]; statements: StatementRecord[] };
         if (parsed.transactions?.length) {
@@ -554,14 +555,14 @@ export default function SpendWiseApp() {
         }
       }
     } catch {
-      localStorage.removeItem("spendwise-data-v1");
+      localStorage.removeItem("spendwise-data-v2");
     }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated || isSample) return;
-    localStorage.setItem("spendwise-data-v1", JSON.stringify({ transactions, statements }));
+    localStorage.setItem("spendwise-data-v2", JSON.stringify({ transactions, statements }));
   }, [hydrated, isSample, statements, transactions]);
 
   const monthOptions = useMemo(() => [...new Set(transactions.map((item) => monthKey(item.date)))].filter(Boolean).sort().reverse(), [transactions]);
@@ -586,26 +587,29 @@ export default function SpendWiseApp() {
     setUploadMessage("Building your verified transaction ledger…");
     const imported: Transaction[] = [];
     const importedStatements: StatementRecord[] = [];
-    let failed = 0;
-    for (const file of Array.from(files)) {
+    const outcomes = await Promise.all(Array.from(files).map(async (file) => {
       try {
-        const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-        const text = isPdf ? await pdfText(file) : await file.text();
-        const parsed = isPdf ? analyseBankText(text, file.name) : analyseCsv(text, file.name);
-        imported.push(...parsed);
-        importedStatements.push({ id: `${file.name}-${file.lastModified}`, name: file.name, uploadedAt: new Date().toISOString(), transactionCount: parsed.length });
+        const parsed = await parseStatementFile(file);
+        return { file, parsed };
       } catch {
-        failed += 1;
+        return null;
       }
+    }));
+    const successful = outcomes.filter((outcome) => outcome !== null);
+    for (const { file, parsed } of successful) {
+      imported.push(...parsed.spendingTransactions);
+      importedStatements.push({ id: `${file.name}-${file.lastModified}`, name: file.name, uploadedAt: new Date().toISOString(), transactionCount: parsed.transactions.length, diagnostics: parsed.diagnostics });
     }
-    const unique = Array.from(new Map(imported.map((item) => [item.id, item])).values());
-    if (unique.length) {
-      setTransactions(unique);
+    const failed = files.length - successful.length;
+    if (imported.length) {
+      setTransactions(imported);
       setStatements(importedStatements);
       setIsSample(false);
-      const latest = [...new Set(unique.map((item) => monthKey(item.date)))].sort().at(-1);
+      const latest = [...new Set(imported.map((item) => monthKey(item.date)))].sort().at(-1);
       if (latest) setSelectedMonth(latest);
-      setUploadMessage(`Found ${unique.length} transactions across ${files.length - failed} statement${files.length - failed === 1 ? "" : "s"}.`);
+      const reconciled = importedStatements.reduce((sum, statement) => sum + (statement.diagnostics?.reconciledTransactions ?? 0), 0);
+      const flagged = importedStatements.reduce((sum, statement) => sum + (statement.diagnostics?.unreconciledTransactions ?? 0) + (statement.diagnostics?.missingBalanceTransactions ?? 0), 0);
+      setUploadMessage(`Built ledger: ${importedStatements.reduce((sum, statement) => sum + statement.transactionCount, 0)} transactions · ${reconciled} reconciled · ${flagged} flagged. Totals are net of detected refunds.`);
       setTimeout(() => setUploadOpen(false), 900);
     } else {
       setUploadMessage(failed === files.length ? "Could not read those files. Try a bank PDF or CSV export." : "Could not find debit transactions in those statements.");
@@ -620,7 +624,7 @@ export default function SpendWiseApp() {
 
   const clearData = () => {
     if (!window.confirm("Clear all imported statements and corrections from this device?")) return;
-    localStorage.removeItem("spendwise-data-v1");
+    localStorage.removeItem("spendwise-data-v2");
     setTransactions(sampleTransactions);
     setStatements([]);
     setSelectedMonth("2026-09");
