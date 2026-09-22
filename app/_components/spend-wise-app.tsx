@@ -672,16 +672,18 @@ export default function SpendWiseApp() {
       try {
         const parsed = await parseStatementFile(file);
         return { file, parsed };
-      } catch {
-        return null;
+      } catch (error) {
+        console.error("[statement-upload] Failed to parse statement", { fileName: file.name, error });
+        return { file, error: error instanceof Error ? error.message : String(error) };
       }
     }));
-    const successful = outcomes.filter((outcome) => outcome !== null);
+    const successful = outcomes.filter((outcome): outcome is Extract<typeof outcome, { parsed: unknown }> => "parsed" in outcome);
     for (const { file, parsed } of successful) {
       imported.push(...parsed.spendingTransactions);
       importedStatements.push({ id: `${file.name}-${file.lastModified}`, name: file.name, uploadedAt: new Date().toISOString(), transactionCount: parsed.transactions.length, diagnostics: parsed.diagnostics });
     }
-    const failed = files.length - successful.length;
+    const failures = outcomes.filter((outcome): outcome is Extract<typeof outcome, { error: string }> => "error" in outcome);
+    const failed = failures.length;
     if (imported.length) {
       setTransactions(imported);
       setStatements(importedStatements);
@@ -693,7 +695,8 @@ export default function SpendWiseApp() {
       setUploadMessage(`Built ledger: ${importedStatements.reduce((sum, statement) => sum + statement.transactionCount, 0)} transactions · ${reconciled} reconciled · ${flagged} flagged. Totals are net of detected refunds.`);
       setTimeout(() => setUploadOpen(false), 900);
     } else {
-      setUploadMessage(failed === files.length ? "Could not read those files. Try a bank PDF or CSV export." : "Could not find debit transactions in those statements.");
+      const reason = failures[0]?.error;
+      setUploadMessage(failed === files.length ? `Could not read ${failures[0]?.file.name ?? "that file"}${reason ? `: ${reason}` : ". Try a bank PDF or CSV export."}` : "Could not find debit transactions in those statements.");
     }
     setBusy(false);
   };
