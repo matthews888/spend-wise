@@ -247,6 +247,17 @@ function OverviewScreen({
     return result;
   }, {} as Record<Category, number>)).sort((a, b) => b[1] - a[1]) as Array<[Category, number]>;
   const waste = monthTransactions.filter((item) => item.wasteStatus === "avoidable").reduce((sum, item) => sum + signedAmount(item), 0);
+  const subscriptions = monthTransactions.filter((item) => item.category === "Subscriptions");
+  const subscriptionTotal = subscriptions.reduce((sum, item) => sum + signedAmount(item), 0);
+  const subscriptionMerchants = Object.values(subscriptions.reduce((result, item) => {
+    const current = result[item.merchant] ?? { merchant: item.merchant, amount: 0, count: 0 };
+    current.amount += signedAmount(item);
+    current.count += 1;
+    result[item.merchant] = current;
+    return result;
+  }, {} as Record<string, { merchant: string; amount: number; count: number }>))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 3);
   const priorTotal = monthTotals.find(([key]) => key < month)?.[1] ?? total;
   const improvement = priorTotal ? Math.round(((priorTotal - total) / priorTotal) * 100) : 0;
 
@@ -283,6 +294,33 @@ function OverviewScreen({
             </button>
           ))}
         </div>
+      </section>
+      <section className="overview-subscriptions surface">
+        <div className="section-heading">
+          <div><h2>Subscriptions</h2><p>Recurring charges this month</p></div>
+          <button onClick={() => onCategory("Subscriptions")}>View all <ChevronRight /></button>
+        </div>
+        <button className="subscription-summary" onClick={() => onCategory("Subscriptions")}>
+          <CategoryIcon category="Subscriptions" />
+          <span>
+            <strong>{money(subscriptionTotal)}</strong>
+            <small>{subscriptions.length} {subscriptions.length === 1 ? "transaction" : "transactions"} · net of detected refunds</small>
+          </span>
+          <ChevronRight />
+        </button>
+        {subscriptionMerchants.length > 0 ? (
+          <div className="subscription-merchant-list">
+            {subscriptionMerchants.map(({ merchant, amount, count }) => (
+              <button className="subscription-merchant-row" key={merchant} onClick={() => onCategory("Subscriptions")}>
+                <MerchantIcon merchant={merchant} category="Subscriptions" />
+                <span><strong>{merchant}</strong><small>{count} {count === 1 ? "charge" : "charges"}</small></span>
+                <b>{money(amount, 2)}</b>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="subscription-empty">No subscriptions detected in {monthLabel(month)}.</p>
+        )}
       </section>
       <InsightCard amount={Math.round(waste * 0.25)} onAction={onWaste} />
     </div>
