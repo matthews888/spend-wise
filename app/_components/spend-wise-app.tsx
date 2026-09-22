@@ -546,7 +546,7 @@ function UploadModal({
   busy: boolean;
   message: string;
   onClose: () => void;
-  onFiles: (files: FileList) => void;
+  onFiles: (files: File[]) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   if (!open) return null;
@@ -563,8 +563,8 @@ function UploadModal({
           <small>Upload multiple months at once</small>
         </button>
         <input ref={inputRef} hidden type="file" multiple accept=".pdf,.csv,application/pdf,text/csv" onChange={(event) => {
-          const selectedFiles = event.target.files;
-          if (selectedFiles?.length) void onFiles(selectedFiles);
+          const selectedFiles = Array.from(event.target.files ?? []);
+          if (selectedFiles.length) void onFiles(selectedFiles);
           event.target.value = "";
         }} />
         {message && <div className={`upload-message ${message.startsWith("Could") ? "error" : ""}`}>{message}</div>}
@@ -667,7 +667,7 @@ export default function SpendWiseApp() {
     setSpendingView(category === "Subscriptions" ? "subscriptions" : "categories");
   };
 
-  const handleFiles = async (files: FileList) => {
+  const handleFiles = async (files: File[]) => {
     setBusy(true);
     setUploadMessage("Building your verified transaction ledger…");
     const imported: Transaction[] = [];
@@ -682,7 +682,7 @@ export default function SpendWiseApp() {
         return { file, error: error instanceof Error ? error.message : String(error) };
       }
     }
-    for (const file of Array.from(files)) {
+    for (const file of files) {
       setUploadMessage(`Reading ${file.name}…`);
       outcomes.push(await parseOne(file));
     }
