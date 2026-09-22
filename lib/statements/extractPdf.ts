@@ -2,9 +2,33 @@ import type { ExtractedPage, PdfExtraction, PositionedTextItem } from "./types";
 
 type PdfInput = File | ArrayBuffer | Uint8Array;
 
+function readWithFileReader(file: File) {
+  return new Promise<Uint8Array>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(new Uint8Array(reader.result));
+      else reject(new Error("The selected file could not be read as binary data."));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("The selected file could not be read."));
+    reader.onabort = () => reject(new Error("Reading the selected file was cancelled."));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 async function bytesFrom(input: PdfInput) {
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
+  if (typeof FileReader !== "undefined") {
+    try {
+      return await readWithFileReader(input);
+    } catch (fileReaderError) {
+      try {
+        return new Uint8Array(await input.arrayBuffer());
+      } catch {
+        throw fileReaderError;
+      }
+    }
+  }
   return new Uint8Array(await input.arrayBuffer());
 }
 

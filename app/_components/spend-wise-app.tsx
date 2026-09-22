@@ -562,7 +562,11 @@ function UploadModal({
           <strong>{busy ? "Analysing your spending…" : "Choose PDF or CSV files"}</strong>
           <small>Upload multiple months at once</small>
         </button>
-        <input ref={inputRef} hidden type="file" multiple accept=".pdf,.csv,application/pdf,text/csv" onChange={(event) => event.target.files && onFiles(event.target.files)} />
+        <input ref={inputRef} hidden type="file" multiple accept=".pdf,.csv,application/pdf,text/csv" onChange={(event) => {
+          const selectedFiles = event.target.files;
+          if (selectedFiles?.length) void onFiles(selectedFiles);
+          event.target.value = "";
+        }} />
         {message && <div className={`upload-message ${message.startsWith("Could") ? "error" : ""}`}>{message}</div>}
         <div className="privacy-note"><LockKeyhole /><span><strong>Private by design</strong><small>No bank login. No files uploaded to a server.</small></span></div>
       </section>
@@ -668,7 +672,8 @@ export default function SpendWiseApp() {
     setUploadMessage("Building your verified transaction ledger…");
     const imported: Transaction[] = [];
     const importedStatements: StatementRecord[] = [];
-    const outcomes = await Promise.all(Array.from(files).map(async (file) => {
+    const outcomes: Array<Awaited<ReturnType<typeof parseOne>>> = [];
+    async function parseOne(file: File) {
       try {
         const parsed = await parseStatementFile(file);
         return { file, parsed };
@@ -676,7 +681,11 @@ export default function SpendWiseApp() {
         console.error("[statement-upload] Failed to parse statement", { fileName: file.name, error });
         return { file, error: error instanceof Error ? error.message : String(error) };
       }
-    }));
+    }
+    for (const file of Array.from(files)) {
+      setUploadMessage(`Reading ${file.name}…`);
+      outcomes.push(await parseOne(file));
+    }
     const successful = outcomes.filter((outcome): outcome is Extract<typeof outcome, { parsed: unknown }> => "parsed" in outcome);
     for (const { file, parsed } of successful) {
       imported.push(...parsed.spendingTransactions);
