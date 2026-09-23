@@ -624,6 +624,7 @@ export default function SpendWiseApp() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [importNotice, setImportNotice] = useState("");
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
@@ -694,6 +695,7 @@ export default function SpendWiseApp() {
     const failures = outcomes.filter((outcome): outcome is Extract<typeof outcome, { error: string }> => "error" in outcome);
     const failed = failures.length;
     if (imported.length) {
+      const alreadyImported = importedStatements.length > 0 && importedStatements.every((statement) => statements.some((existing) => existing.id === statement.id));
       setTransactions(imported);
       setStatements(importedStatements);
       setIsSample(false);
@@ -701,8 +703,12 @@ export default function SpendWiseApp() {
       if (latest) setSelectedMonth(latest);
       const reconciled = importedStatements.reduce((sum, statement) => sum + (statement.diagnostics?.reconciledTransactions ?? 0), 0);
       const flagged = importedStatements.reduce((sum, statement) => sum + (statement.diagnostics?.unreconciledTransactions ?? 0) + (statement.diagnostics?.missingBalanceTransactions ?? 0), 0);
-      setUploadMessage(`Built ledger: ${importedStatements.reduce((sum, statement) => sum + statement.transactionCount, 0)} transactions · ${reconciled} reconciled · ${flagged} flagged. Totals are net of detected refunds.`);
-      setTimeout(() => setUploadOpen(false), 900);
+      const transactionCount = importedStatements.reduce((sum, statement) => sum + statement.transactionCount, 0);
+      const fileNames = importedStatements.map((statement) => statement.name).join(", ");
+      const resultMessage = `${alreadyImported ? "Re-analysed" : "Imported"} ${fileNames}: ${transactionCount} transactions · ${reconciled} reconciled · ${flagged} flagged.`;
+      setUploadMessage(`${resultMessage} Totals are net of detected refunds.`);
+      setImportNotice(resultMessage);
+      window.setTimeout(() => setUploadOpen(false), 1_800);
     } else {
       const reason = failures[0]?.error;
       setUploadMessage(failed === files.length ? `Could not read ${failures[0]?.file.name ?? "that file"}${reason ? `: ${reason}` : ". Try a bank PDF or CSV export."}` : "Could not find debit transactions in those statements.");
@@ -730,6 +736,7 @@ export default function SpendWiseApp() {
       <div className="app-frame">
         <AppHeader tab={tab} hasNotification={!isSample} />
         <div className="screen-content">
+          {importNotice && <div className="import-banner" role="status"><Check /><span><strong>Statement ready</strong><small>{importNotice}</small></span><button onClick={() => setImportNotice("")} aria-label="Dismiss import confirmation"><X /></button></div>}
           {tab === "overview" && <OverviewScreen month={selectedMonth} monthOptions={monthOptions} monthTransactions={monthTransactions} monthTotals={monthTotals} average={average} isSample={isSample} setMonth={setSelectedMonth} onUpload={() => setUploadOpen(true)} onCategory={openCategory} onWaste={() => setTab("waste")} />}
           {tab === "spending" && <SpendingScreen month={selectedMonth} monthOptions={monthOptions} transactions={monthTransactions} monthTotals={monthTotals} view={spendingView} setMonth={setSelectedMonth} setView={setSpendingView} onUpload={() => setUploadOpen(true)} onTransaction={setSelectedTransaction} />}
           {tab === "waste" && <WasteScreen month={selectedMonth} monthOptions={monthOptions} transactions={monthTransactions} setMonth={setSelectedMonth} onUpload={() => setUploadOpen(true)} onTransaction={setSelectedTransaction} />}
