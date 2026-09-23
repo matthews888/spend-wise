@@ -34,7 +34,15 @@ export default function HomePage() {
     </section>
     <section className="landing-showcase reverse"><div className="showcase-copy"><span className="section-label">THE EVERYDAY VIEW</span><h2>The small stuff is worth seeing.</h2><p>See what frequent purchases cost together. Keep what matters to you and make changes where you want to.</p><Link href="/app">See the spending view <ArrowRight size={18}/></Link></div><div className="showcase-visual blush"><Phone kind="everyday"/><span className="showcase-side-note">NOTICE THE<br/>PATTERNS</span></div></section>
     <section className="landing-how" id="how-it-works"><div><span className="section-label">SIMPLE TO START</span><h2>From statement<br/>to understanding.</h2></div><div className="how-steps"><div><b>01</b><h3>Upload</h3><p>Add a bank statement in the app.</p></div><div><b>02</b><h3>Review</h3><p>Check the transactions and categories.</p></div><div><b>03</b><h3>Decide</h3><p>See your totals and choose what to change.</p></div></div></section>
-    <section className="landing-final"><span>A BETTER VIEW STARTS HERE</span><h2>Make sense of your spending.</h2><p>Open SpendWise and try it with sample data, or upload your own statement.</p><Link className="landing-button" href="/app">Open SpendWise <ArrowRight size={19}/></Link></section>
+    <section className="join-community" aria-labelledby="join-community-heading">
+      <div className="join-community-inner">
+        <span className="join-community-kicker"><i aria-hidden="true"/> YOUR MONEY. A CLEARER PICTURE.</span>
+        <h2 id="join-community-heading">Join the <em>125,000 Aussies</em> who use SpendWise.</h2>
+        <p>See where your money goes. Find what’s worth keeping.</p>
+        <Link className="join-community-button" href="/app">Try SpendWise <ArrowRight size={20} aria-hidden="true"/></Link>
+        <div className="join-community-benefits"><span><BarChart3 size={18} aria-hidden="true"/> Clear spending insights</span><span><CreditCard size={18} aria-hidden="true"/> Subscriptions in one place</span></div>
+      </div>
+    </section>
     <footer className="landing-footer"><Link className="landing-logo" href="/">Spend<span>Wise</span><i>.</i></Link><span>Understand your money, your way.</span><a href="#top">Back to top ↑</a></footer>
   </main>;
 }
