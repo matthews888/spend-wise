@@ -1,18 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, Cloud, Coffee, CreditCard, Dumbbell, Play, UtensilsCrossed } from "lucide-react";
-
-function Phone({ kind }: { kind: "overview" | "subscriptions" | "everyday" }) {
-  const title = { overview: "Overview", subscriptions: "Subscriptions", everyday: "Everyday spending" }[kind];
-  return <div className={`landing-phone phone-${kind}`} aria-label={`${title} illustrative app preview`}>
-    <div className="phone-island" /><div className="phone-status"><span>9:41</span><span>●●● ▰</span></div>
-    <div className="phone-inner"><div className="phone-brand">Spend<span>Wise</span><span className="phone-menu">☰</span></div><div className="phone-eyebrow">SEPTEMBER 2026</div><h3>{title}</h3>
-      {kind === "overview" && <><div className="phone-panel phone-total"><span>Total spent this month</span><strong>$3,842<span>.60</span></strong><small>↓ 12% from last month</small><div className="phone-chart"><i style={{height:"36%"}}/><i style={{height:"52%"}}/><i style={{height:"45%"}}/><i style={{height:"76%"}}/><i style={{height:"60%"}}/><i style={{height:"93%"}}/><i style={{height:"67%"}}/></div></div><div className="phone-miniheading">Your spending <span>See all →</span></div><div className="phone-panel phone-list"><div><b className="swatch purple"/>Subscriptions <strong>$186</strong></div><div><b className="swatch orange"/>Food delivery <strong>$324</strong></div><div><b className="swatch green"/>Groceries <strong>$682</strong></div></div></>}
-      {kind === "subscriptions" && <><div className="phone-panel phone-subtotal"><span>Recurring payments</span><strong>$186<span>/month</span></strong><small>That’s $2,232 over a year</small></div><div className="phone-miniheading">Your subscriptions</div><div className="phone-panel phone-list subscription-list"><div><b className="app-icon netflix">N</b><span>Netflix<small>Entertainment</small></span><strong>$15.99</strong></div><div><b className="app-icon spotify">◉</b><span>Spotify<small>Music</small></span><strong>$10.99</strong></div><div><b className="app-icon fitness">✦</b><span>Gym membership<small>Fitness</small></span><strong>$49.00</strong></div><div><b className="app-icon cloud">◈</b><span>Cloud storage<small>Digital</small></span><strong>$12.99</strong></div></div></>}
-      {kind === "everyday" && <><div className="phone-panel phone-subtotal"><span>Small spends this month</span><strong>$562<span>.00</span></strong><small>See the purchases behind the total</small></div><div className="phone-miniheading">Where it went</div><div className="phone-spend-row pink"><span className="spend-icon"><UtensilsCrossed size={18}/></span><span>Food delivery<small>28 purchases</small></span><strong>$324</strong></div><div className="phone-spend-row peach"><span className="spend-icon"><Coffee size={18}/></span><span>Cafés<small>19 purchases</small></span><strong>$142</strong></div><div className="phone-spend-row blue"><span className="spend-icon"><CreditCard size={18}/></span><span>Rides<small>12 purchases</small></span><strong>$96</strong></div></>}
-      <div className="phone-bottom"><span>⌂<small>Home</small></span><span>▥<small>Spending</small></span><span>✦<small>Waste</small></span><span>⚙<small>Settings</small></span></div>
-    </div>
-  </div>;
-}
+import { ArrowRight, BarChart3, Cloud, Coffee, CreditCard, Dumbbell, Play } from "lucide-react";
 
 export default function HomePage() {
   return <main className="landing" id="top">
@@ -32,17 +19,15 @@ export default function HomePage() {
       <div className="subscription-copy"><span className="section-label">SUBSCRIPTIONS, IN ONE PLACE</span><h2 id="subscription-heading">Find the subscriptions you <em>forgot about.</em></h2><p>See every recurring payment together, know what it costs each month, and decide what’s worth keeping.</p></div>
       <div className="subscription-preview-wrap"><div className="subscription-preview"><h3>Your recurring payments</h3><div className="subscription-total"><strong>$186</strong><span>/ month</span></div><p className="subscription-yearly">That’s $2,232 a year</p><div className="subscription-preview-list"><div><span className="subscription-preview-icon stream"><Play size={20} fill="currentColor" aria-hidden="true"/></span><span>Streaming</span><strong>$32</strong></div><div><span className="subscription-preview-icon gym"><Dumbbell size={21} aria-hidden="true"/></span><span>Gym membership</span><strong>$49</strong></div><div><span className="subscription-preview-icon cloud"><Cloud size={21} fill="currentColor" aria-hidden="true"/></span><span>Cloud storage</span><strong>$13</strong></div></div><Link className="subscription-preview-link" href="/app">See the full list <ArrowRight size={18}/></Link></div><span className="subscription-preview-caption">Illustrative app preview</span></div>
     </section>
-    <section className="landing-showcase reverse"><div className="showcase-copy"><span className="section-label">THE EVERYDAY VIEW</span><h2>The small stuff is worth seeing.</h2><p>See what frequent purchases cost together. Keep what matters to you and make changes where you want to.</p><Link href="/app">See the spending view <ArrowRight size={18}/></Link></div><div className="showcase-visual blush"><Phone kind="everyday"/><span className="showcase-side-note">NOTICE THE<br/>PATTERNS</span></div></section>
-    <section className="landing-how" id="how-it-works"><div><span className="section-label">SIMPLE TO START</span><h2>From statement<br/>to understanding.</h2></div><div className="how-steps"><div><b>01</b><h3>Upload</h3><p>Add a bank statement in the app.</p></div><div><b>02</b><h3>Review</h3><p>Check the transactions and categories.</p></div><div><b>03</b><h3>Decide</h3><p>See your totals and choose what to change.</p></div></div></section>
     <section className="join-community" aria-labelledby="join-community-heading">
       <div className="join-community-inner">
-        <span className="join-community-kicker"><i aria-hidden="true"/> YOUR MONEY. A CLEARER PICTURE.</span>
-        <h2 id="join-community-heading">Join the <em>125,000 Aussies</em> who use SpendWise.</h2>
-        <p>See where your money goes. Find what’s worth keeping.</p>
-        <Link className="join-community-button" href="/app">Try SpendWise <ArrowRight size={20} aria-hidden="true"/></Link>
-        <div className="join-community-benefits"><span><BarChart3 size={18} aria-hidden="true"/> Clear spending insights</span><span><CreditCard size={18} aria-hidden="true"/> Subscriptions in one place</span></div>
+        <span className="join-community-kicker"><i aria-hidden="true"/> A CLEARER VIEW OF YOUR MONEY</span>
+        <h2 id="join-community-heading"><span>Join the</span> <em>125k Aussies</em> <span>who use SpendWise.</span></h2>
+        <p>See where your money goes, spot recurring payments and decide what’s worth keeping.</p>
+        <Link className="join-community-button" href="/app">Try SpendWise <ArrowRight size={22} aria-hidden="true"/></Link>
       </div>
     </section>
+    <section className="landing-how" id="how-it-works"><div><span className="section-label">SIMPLE TO START</span><h2>From statement<br/>to understanding.</h2></div><div className="how-steps"><div><b>01</b><h3>Upload</h3><p>Add a bank statement in the app.</p></div><div><b>02</b><h3>Review</h3><p>Check the transactions and categories.</p></div><div><b>03</b><h3>Decide</h3><p>See your totals and choose what to change.</p></div></div></section>
     <footer className="landing-footer"><Link className="landing-logo" href="/">Spend<span>Wise</span><i>.</i></Link><span>Understand your money, your way.</span><a href="#top">Back to top ↑</a></footer>
   </main>;
 }
