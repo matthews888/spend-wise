@@ -14,7 +14,7 @@ export function BackToFooter() {
   return <button className="back-to-footer" type="button" onClick={() => {
     sessionStorage.setItem(returnKey, "1");
     window.location.assign("/#site-footer");
-  }} aria-label="Back to footer"><span aria-hidden="true">←</span> Back to footer</button>;
+  }} aria-label="Back"><span aria-hidden="true">←</span> Back</button>;
 }
 
 export function RestoreFooterPosition() {

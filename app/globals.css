@@ -83,3 +83,7 @@
 .info-page .info-header .landing-logo,.info-page .info-header .landing-logo:visited{color:#101318}
 @media(max-width:1200px){.back-to-footer{top:auto;bottom:24px;left:20px;transform:none}.info-footer{padding-bottom:90px}}
 @media(max-width:640px){.footer-band{margin-top:35px}.footer-band .landing-footer{padding-top:60px}.back-to-footer{bottom:calc(16px + env(safe-area-inset-bottom));left:16px;padding:11px 15px;min-height:44px}.info-footer{padding-bottom:100px}}
+/* Keep the short return control in the page header at every width. */
+.info-header{justify-content:center;min-height:91px}.back-to-footer{top:22px;bottom:auto;left:5%;transform:none;min-height:46px;padding:12px 17px}
+@media(max-width:1200px){.back-to-footer{top:22px;bottom:auto;left:5%;transform:none}.info-footer{padding-bottom:40px}}
+@media(max-width:640px){.info-header{min-height:77px;padding-top:18px;padding-bottom:18px}.back-to-footer{top:17px;bottom:auto;left:5%;min-height:42px;padding:9px 13px;font-size:14px}.info-footer{padding-bottom:40px}}
