@@ -87,3 +87,7 @@
 .info-header{justify-content:center;min-height:91px}.back-to-footer{top:22px;bottom:auto;left:5%;transform:none;min-height:46px;padding:12px 17px}
 @media(max-width:1200px){.back-to-footer{top:22px;bottom:auto;left:5%;transform:none}.info-footer{padding-bottom:40px}}
 @media(max-width:640px){.info-header{min-height:77px;padding-top:18px;padding-bottom:18px}.back-to-footer{top:17px;bottom:auto;left:5%;min-height:42px;padding:9px 13px;font-size:14px}.info-footer{padding-bottom:40px}}
+
+/* Trust and specific testimonial details. */
+.landing-hero-copy>.landing-trust{display:flex;align-items:center;gap:10px;max-width:none;margin:28px 0 0;color:#54635d;font-size:15px;line-height:1.5}.landing-trust svg{flex:none;color:#099a6a}.testimonial-card figcaption>span{display:flex;flex-direction:column;gap:4px}.testimonial-card figcaption strong{font-size:18px;line-height:1.2}.testimonial-card figcaption small{color:#68767a;font-size:14px;font-weight:500;line-height:1.4}
+@media(max-width:640px){.landing-hero-copy>.landing-trust{align-items:flex-start;margin-top:24px;font-size:14px}.landing-trust svg{margin-top:2px}.testimonial-card figcaption strong{font-size:16px}.testimonial-card figcaption small{font-size:13px}}
